@@ -235,6 +235,18 @@ Request iOS Age Signal.
 | -9 | APP_NOT_OWNED | App not installed by Google Play. | No |
 | -100 | INTERNAL_ERROR | Unknown internal error. | No |
 
+### Official API Documentation
+
+**Apple iOS:**
+- [Declared Age Range Framework](https://developer.apple.com/documentation/declaredagerange) - Official Apple Developer Documentation
+- [WWDC25: Deliver age-appropriate experiences in your app](https://developer.apple.com/videos/play/wwdc2025/299/) - Session video explaining implementation
+
+**Google Android:**
+- [Play Age Signals Overview](https://developer.android.com/google/play/age-signals/overview) - Introduction and concepts
+- [Use Play Age Signals API](https://developer.android.com/google/play/age-signals/use-age-signals-api) - Implementation guide
+- [Test your Play Age Signals API integration](https://developer.android.com/google/play/age-signals/test-age-signals-api) - Testing with FakeAgeSignalsManager
+- [Play Age Signals Release Notes](https://developer.android.com/google/play/age-signals/release-notes) - Version history and updates
+
 ---
 
 ## 🤝 Contributing
