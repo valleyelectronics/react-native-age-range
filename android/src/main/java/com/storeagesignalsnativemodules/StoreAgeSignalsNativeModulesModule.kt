@@ -151,6 +151,37 @@ class StoreAgeSignalsNativeModulesModule(reactContext: ReactApplicationContext) 
     }
   }
 
+  @ReactMethod
+  fun isEligibleForAgeFeatures(promise: Promise) {
+    try {
+      val context = reactApplicationContext
+      val manager = AgeSignalsManagerFactory.create(context)
+      val request = AgeSignalsRequest.builder().build()
+
+      manager.checkAgeSignals(request)
+        .addOnSuccessListener { result ->
+          // User is eligible if we get a valid response with a known status
+          val userStatus = result.userStatus()
+          val isEligible = userStatus != null && userStatus != AgeSignalsVerificationStatus.UNKNOWN
+          promise.resolve(isEligible)
+        }
+        .addOnFailureListener { exception ->
+          // If API fails, user is likely not in an applicable region
+          // or there's a configuration issue
+          if (exception is ApiException) {
+            // Error codes -9 (APP_NOT_OWNED) and certain others indicate ineligibility
+            val isIneligible = exception.statusCode == -9
+            promise.resolve(!isIneligible && exception.statusCode >= 0)
+          } else {
+            promise.resolve(false)
+          }
+        }
+    } catch (e: Exception) {
+      // If we can't even create the manager, user is not eligible
+      promise.resolve(false)
+    }
+  }
+
   companion object {
     const val NAME = "StoreAgeSignalsNativeModules"
   }

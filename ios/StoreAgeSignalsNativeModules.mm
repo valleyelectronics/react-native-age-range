@@ -54,6 +54,11 @@ RCT_EXPORT_METHOD(requestIOSDeclaredAgeRange : (
                                                reject:reject];
 }
 
+RCT_EXPORT_METHOD(isEligibleForAgeFeatures : (RCTPromiseResolveBlock)
+                      resolve reject : (RCTPromiseRejectBlock)reject) {
+  [_swiftImpl isEligibleForAgeFeaturesWithResolve:resolve reject:reject];
+}
+
 // Don't compile this code when we build for the old architecture.
 // Don't compile this code when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED

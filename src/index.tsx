@@ -129,3 +129,31 @@ export function requestIOSDeclaredAgeRange(
     thirdThresholdAge
   );
 }
+
+/**
+ * Checks if the current user is eligible for age verification features on iOS.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas).
+ * @platform ios
+ * @returns Promise<boolean> - true if user should be shown age verification, false otherwise
+ * @remarks Requires iOS 26.2+ for accurate results. Returns true on iOS 26.0-26.1, false on older versions.
+ */
+export function isIOSEligibleForAgeFeatures(): Promise<boolean> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve(false);
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
+}
+
+/**
+ * Checks if the current user is eligible for age verification features on Android.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas, Utah, Louisiana).
+ * @platform android
+ * @returns Promise<boolean> - true if user should be shown age verification, false otherwise
+ * @remarks Makes a lightweight API call to determine eligibility. Returns false if API is unavailable.
+ */
+export function isAndroidEligibleForAgeFeatures(): Promise<boolean> {
+  if (Platform.OS !== 'android') {
+    return Promise.resolve(false);
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
+}

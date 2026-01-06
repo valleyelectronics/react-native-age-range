@@ -101,6 +101,30 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
       #endif
   }
   
+  @objc
+  public func isEligibleForAgeFeatures(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(DeclaredAgeRange)
+      // isEligibleForAgeFeatures requires iOS 26.2+
+      if #available(iOS 26.2, *) {
+          let isEligible = AgeRangeService.shared.isEligibleForAgeFeatures
+          resolve(isEligible)
+      } else if #available(iOS 26.0, *) {
+          // iOS 26.0-26.1: API exists but isEligibleForAgeFeatures not available
+          // Return true as a fallback (assume eligible, let requestAgeRange determine)
+          resolve(true)
+      } else {
+          // iOS < 26.0: Not supported
+          resolve(false)
+      }
+      #else
+      // SDK not available
+      resolve(false)
+      #endif
+  }
+
   // Helper to get top view controller
   private func topViewController() -> UIViewController? {
     guard let windowScene = UIApplication.shared.connectedScenes
