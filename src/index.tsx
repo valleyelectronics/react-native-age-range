@@ -18,9 +18,25 @@ const StoreAgeSignalsNativeModules = NativeModules.StoreAgeSignalsNativeModules
     );
 
 // Android Types
+
+/**
+ * User verification status from Google Play Age Signals API.
+ * - OVER_AGE: User is verified as an adult (18+)
+ * - UNDER_AGE: User has a supervised account (child/teen)
+ * - UNDER_AGE_APPROVAL_PENDING: Supervised user, parent hasn't approved pending significant changes
+ * - UNDER_AGE_APPROVAL_DENIED: Supervised user, parent denied approval for significant changes
+ * - UNKNOWN: Status could not be determined
+ */
+export type AndroidUserStatus =
+  | 'OVER_AGE'
+  | 'UNDER_AGE'
+  | 'UNDER_AGE_APPROVAL_PENDING'
+  | 'UNDER_AGE_APPROVAL_DENIED'
+  | 'UNKNOWN';
+
 export interface PlayAgeRangeStatusResult {
   installId: string | null;
-  userStatus: 'OVER_AGE' | 'UNDER_AGE' | 'UNKNOWN' | null;
+  userStatus: AndroidUserStatus | null;
   error: string | null;
   /**
    * The (inclusive) lower bound of a supervised user's age range.
@@ -62,7 +78,7 @@ export interface AndroidAgeRangeConfig {
    * The status to return when isMock is true.
    * Default: 'OVER_AGE'
    */
-  mockStatus?: 'OVER_AGE' | 'UNDER_AGE' | 'UNKNOWN';
+  mockStatus?: AndroidUserStatus;
   /**
    * (Mock Only) Lower bound of the age range (e.g. 13).
    * Relevant when mockStatus is 'UNDER_AGE' (Supervised).

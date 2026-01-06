@@ -187,8 +187,20 @@ Retrieves Android Play Age Signal.
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `config.isMock` | `boolean` | `false` | Enable to return fake data. |
-| `config.mockStatus` | `enum` | `'OVER_AGE'` | `OVER_AGE` \| `UNDER_AGE` \| `UNKNOWN` |
+| `config.mockStatus` | `enum` | `'OVER_AGE'` | See status values below |
 | `config.mockErrorCode` | `number` | `null` | Simulate API error code (e.g. -1). |
+
+**Returns**: `Promise<PlayAgeRangeStatusResult>`
+- `userStatus`: User verification status:
+  - `OVER_AGE` - Verified adult (18+)
+  - `UNDER_AGE` - Supervised account (child/teen)
+  - `UNDER_AGE_APPROVAL_PENDING` - Supervised, parent hasn't approved pending significant changes
+  - `UNDER_AGE_APPROVAL_DENIED` - Supervised, parent denied approval for significant changes
+  - `UNKNOWN` - Status could not be determined
+- `installId`: Unique installation identifier
+- `ageLower` / `ageUpper`: Age range bounds (for supervised users)
+- `mostRecentApprovalDate`: Date of last approved significant change
+- `error` / `errorCode`: Error information if request failed
 
 ### `requestIOSDeclaredAgeRange(threshold1, threshold2, threshold3)`
 Request iOS Age Signal.
