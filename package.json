@@ -61,17 +61,17 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/milkinteractive/react-native-age-range.git"
+    "url": "git+https://github.com/valleyelectronics/react-native-age-range.git"
   },
-  "author": "Naga sai charan gubba <nagasaicharan7@gmail.com> (https://github.com/nagasaicharan)",
+  "author": "Christoph Eck <christoph@milkinteractive.ch>",
   "contributors": [
     "Christoph Eck <christoph@milkinteractive.ch>"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/milkinteractive/react-native-age-range/issues"
+    "url": "https://github.com/valleyelectronics/react-native-age-range/issues"
   },
-  "homepage": "https://github.com/milkinteractive/react-native-age-range#readme",
+  "homepage": "https://github.com/valleyelectronics/react-native-age-range#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
