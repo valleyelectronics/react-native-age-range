@@ -1,6 +1,8 @@
 import {
   getAndroidPlayAgeRangeStatus,
   requestIOSDeclaredAgeRange,
+  isIOSEligibleForAgeFeatures,
+  isAndroidEligibleForAgeFeatures,
 } from 'react-native-store-age-signals-native-modules';
 import {
   Text,
@@ -17,7 +19,7 @@ import { useState } from 'react';
 
 export default function App() {
   const [result, setResult] = useState<string>('');
-  const t = [13, 16, 18];
+  const t: [number, number, number] = [13, 16, 18];
 
   const checkAndroidAge = async () => {
     try {
@@ -33,6 +35,26 @@ export default function App() {
     try {
       setResult(`>> Checking iOS Age (${t[0]}, ${t[1]}, ${t[2]})...`);
       const data = await requestIOSDeclaredAgeRange(t[0], t[1], t[2]);
+      setResult((prev) => prev + '\n' + JSON.stringify(data, null, 2));
+    } catch (e: any) {
+      setResult((prev) => prev + '\nError: ' + e.message);
+    }
+  };
+
+  const checkIOSEligibility = async () => {
+    try {
+      setResult('>> Checking iOS Eligibility...');
+      const data = await isIOSEligibleForAgeFeatures();
+      setResult((prev) => prev + '\n' + JSON.stringify(data, null, 2));
+    } catch (e: any) {
+      setResult((prev) => prev + '\nError: ' + e.message);
+    }
+  };
+
+  const checkAndroidEligibility = async () => {
+    try {
+      setResult('>> Checking Android Eligibility...');
+      const data = await isAndroidEligibleForAgeFeatures();
       setResult((prev) => prev + '\n' + JSON.stringify(data, null, 2));
     } catch (e: any) {
       setResult((prev) => prev + '\nError: ' + e.message);
@@ -70,6 +92,12 @@ export default function App() {
                 onPress={checkAndroidAge}
               >
                 <Text style={styles.buttonText}>Check Live Age</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.neutralButton, { marginTop: 10 }]}
+                onPress={checkAndroidEligibility}
+              >
+                <Text style={styles.buttonText}>Check Eligibility</Text>
               </TouchableOpacity>
             </View>
 
@@ -146,6 +174,12 @@ export default function App() {
               <Text style={styles.buttonText}>
                 Request Age ({t[0]}, {t[1]}, {t[2]})
               </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.neutralButton, { marginTop: 10 }]}
+              onPress={checkIOSEligibility}
+            >
+              <Text style={styles.buttonText}>Check Eligibility</Text>
             </TouchableOpacity>
           </View>
         )}

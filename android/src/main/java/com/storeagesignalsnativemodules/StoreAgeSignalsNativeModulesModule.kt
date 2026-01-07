@@ -151,6 +151,42 @@ class StoreAgeSignalsNativeModulesModule(reactContext: ReactApplicationContext) 
     }
   }
 
+  @ReactMethod
+  fun isEligibleForAgeFeatures(promise: Promise) {
+    try {
+      val context = reactApplicationContext
+      val manager = AgeSignalsManagerFactory.create(context)
+      val request = AgeSignalsRequest.builder().build()
+
+      manager.checkAgeSignals(request)
+        .addOnSuccessListener { result ->
+          // User is eligible if we get a valid response with a known status
+          val userStatus = result.userStatus()
+          val isEligible = userStatus != null && userStatus != AgeSignalsVerificationStatus.UNKNOWN
+          val map = WritableNativeMap()
+          map.putBoolean("isEligible", isEligible)
+          map.putNull("error")
+          promise.resolve(map)
+        }
+        .addOnFailureListener { exception ->
+          // If API fails, return isEligible: false with error
+          val map = WritableNativeMap()
+          map.putBoolean("isEligible", false)
+          if (exception is ApiException) {
+            map.putString("error", "API error: ${exception.statusCode}")
+          } else {
+            map.putString("error", exception.message ?: "Unknown error")
+          }
+          promise.resolve(map)
+        }
+    } catch (e: Exception) {
+      val map = WritableNativeMap()
+      map.putBoolean("isEligible", false)
+      map.putString("error", "Failed to initialize AgeSignalsManager: ${e.message}")
+      promise.resolve(map)
+    }
+  }
+
   companion object {
     const val NAME = "StoreAgeSignalsNativeModules"
   }
