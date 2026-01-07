@@ -10,9 +10,9 @@ import {
   Platform,
   TextInput,
   ScrollView,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 
 export default function App() {
