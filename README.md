@@ -206,7 +206,13 @@ Request iOS Age Signal.
 - `status`: `'sharing' | 'declined' | null`
 - `lowerBound`: `number | null` - Lower age of user's range
 - `upperBound`: `number | null` - Upper age of user's range
-- `parentControls`: `string | null` - Parental control status
+- `ageRangeDeclaration`: How the age was verified:
+  - `selfDeclared` - User declared their own age
+  - `guardianDeclared` - Guardian set the age (children in iCloud family)
+  - `governmentIDChecked` / `guardianGovernmentIDChecked` - Verified via government ID
+  - `paymentChecked` / `guardianPaymentChecked` - Verified via payment method
+  - `checkedByOtherMethod` / `guardianCheckedByOtherMethod` - Other verification
+- `parentalControls`: `{ communicationLimits?: boolean, significantAppChangeApprovalRequired?: boolean }` - Active parental controls
 
 ### `isIOSEligibleForAgeFeatures()`
 Check if the current iOS user is subject to age verification requirements (e.g., in Texas).
