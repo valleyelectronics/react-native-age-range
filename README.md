@@ -260,7 +260,7 @@ Check if the current iOS user is subject to age verification requirements (e.g.,
 - `isEligible`: `boolean` - `true` if user should be shown age verification
 - `error`: `string | null` - Error message if API unavailable
 
-**Requirements**: iOS 26.2+. On iOS < 26.2, throws an error (returned in `error` field).
+**Requirements**: iOS 26.2+ for accurate results. Returns `isEligible: false` with error on older versions.
 
 ### `isAndroidEligibleForAgeFeatures()`
 Check if the current Android user is subject to age verification requirements.
