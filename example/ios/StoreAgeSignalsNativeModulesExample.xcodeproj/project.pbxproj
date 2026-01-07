@@ -263,7 +263,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StoreAgeSignalsNativeModulesExample/StoreAgeSignalsNativeModulesExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4X2K65LNZ3;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = StoreAgeSignalsNativeModulesExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
@@ -293,7 +293,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = StoreAgeSignalsNativeModulesExample/StoreAgeSignalsNativeModulesExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4X2K65LNZ3;
 				INFOPLIST_FILE = StoreAgeSignalsNativeModulesExample/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
