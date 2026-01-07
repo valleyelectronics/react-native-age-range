@@ -40,7 +40,6 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "postinstall": "node -e \"const fs=require('fs');if(fs.existsSync('./src')||fs.existsSync('./.git'))process.exit(0);if(!fs.existsSync('./lib'))process.exit(1)\" || npm run prepare",
     "release": "release-it"
   },
   "keywords": [
