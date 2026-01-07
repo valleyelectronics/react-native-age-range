@@ -17,6 +17,7 @@ import { useState } from 'react';
 
 export default function App() {
   const [result, setResult] = useState<string>('');
+  const t = [13, 16, 18];
 
   const checkAndroidAge = async () => {
     try {
@@ -30,8 +31,8 @@ export default function App() {
 
   const checkIOSAge = async () => {
     try {
-      setResult('>> Checking iOS Age (13, 17, 21)...');
-      const data = await requestIOSDeclaredAgeRange(13, 17, 21);
+      setResult(`>> Checking iOS Age (${t[0]}, ${t[1]}, ${t[2]})...`);
+      const data = await requestIOSDeclaredAgeRange(t[0], t[1], t[2]);
       setResult((prev) => prev + '\n' + JSON.stringify(data, null, 2));
     } catch (e: any) {
       setResult((prev) => prev + '\nError: ' + e.message);
@@ -94,12 +95,14 @@ export default function App() {
                     runMock('Supervised', {
                       isMock: true,
                       mockStatus: 'UNDER_AGE',
-                      mockAgeLower: 13,
-                      mockAgeUpper: 17,
+                      mockAgeLower: t[0],
+                      mockAgeUpper: t[1],
                     })
                   }
                 >
-                  <Text style={styles.buttonText}>13-17</Text>
+                  <Text style={styles.buttonText}>
+                    {t[0]}-{t[1]}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -140,7 +143,9 @@ export default function App() {
               style={[styles.button, styles.primaryButton]}
               onPress={checkIOSAge}
             >
-              <Text style={styles.buttonText}>Request Age (13, 17, 21)</Text>
+              <Text style={styles.buttonText}>
+                Request Age ({t[0]}, {t[1]}, {t[2]})
+              </Text>
             </TouchableOpacity>
           </View>
         )}
