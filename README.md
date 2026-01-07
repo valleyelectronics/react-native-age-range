@@ -119,9 +119,11 @@ No manual configuration required. The package automatically bundles `com.google.
 ## 💻 Usage
 
 ```typescript
-import { 
-  getAndroidPlayAgeRangeStatus, 
-  requestIOSDeclaredAgeRange 
+import {
+  getAndroidPlayAgeRangeStatus,
+  requestIOSDeclaredAgeRange,
+  isIOSEligibleForAgeFeatures,
+  isAndroidEligibleForAgeFeatures,
 } from 'react-native-store-age-signals-native-modules';
 import { Platform } from 'react-native';
 
@@ -148,20 +150,44 @@ async function checkAndroid() {
 async function checkIOS() {
   if (Platform.OS !== 'ios') return;
 
-  try {
-    // Request discrete age signals (e.g. 13+, 17+, 21+)
-    const result = await requestIOSDeclaredAgeRange(13, 17, 21);
+  // Request discrete age signals (e.g. 13+, 17+, 21+)
+  const result = await requestIOSDeclaredAgeRange(13, 17, 21);
 
-    if (result.status === 'sharing') {
-      // ✅ User shared their age range
-      console.log(`Confirmed Range: ${result.lowerBound} - ${result.upperBound}`);
-    } else {
-      // ❌ User declined or API unavailable
-      console.log('Status:', result.status);
-    }
-  } catch (error) {
-    console.error('iOS Signal Failed:', error);
+  if (result.error) {
+    // ❌ API error (e.g., iOS < 26.0, missing entitlement)
+    console.error('iOS Signal Failed:', result.error);
+    return;
   }
+
+  if (result.status === 'sharing') {
+    // ✅ User shared their age range
+    console.log(`Confirmed Range: ${result.lowerBound} - ${result.upperBound}`);
+    console.log(`Declaration: ${result.ageRangeDeclaration}`);
+  } else {
+    // ❌ User declined
+    console.log('User declined to share age range');
+  }
+}
+
+// 🔍 Check Eligibility (should age verification be shown?)
+async function checkEligibility() {
+  const result = Platform.OS === 'ios'
+    ? await isIOSEligibleForAgeFeatures()
+    : await isAndroidEligibleForAgeFeatures();
+
+  if (result.error) {
+    console.log('Eligibility check failed:', result.error);
+    return false;
+  }
+
+  if (result.isEligible) {
+    // User is in a region requiring age verification (e.g., Texas)
+    // Proceed with age verification flow
+    return true;
+  }
+
+  // User is not subject to age verification requirements
+  return false;
 }
 ```
 
@@ -225,22 +251,23 @@ Request iOS Age Signal.
   - `paymentChecked` / `guardianPaymentChecked` - Verified via payment method
   - `checkedByOtherMethod` / `guardianCheckedByOtherMethod` - Other verification
 - `parentalControls`: `{ communicationLimits?: boolean, significantAppChangeApprovalRequired?: boolean }` - Active parental controls
+- `error`: `string | null` - Error message if API unavailable or request failed
 
 ### `isIOSEligibleForAgeFeatures()`
 Check if the current iOS user is subject to age verification requirements (e.g., in Texas).
 
-**Returns**: `Promise<boolean>`
-- `true`: User should be shown age verification
-- `false`: User is not in an applicable region or API unavailable
+**Returns**: `Promise<DeclaredAgeEligibilityResult>`
+- `isEligible`: `boolean` - `true` if user should be shown age verification
+- `error`: `string | null` - Error message if API unavailable
 
-**Requirements**: iOS 26.2+ for accurate results. Returns `true` on iOS 26.0-26.1, `false` on older versions.
+**Requirements**: iOS 26.2+ for accurate results. Returns `isEligible: false` with error on older versions.
 
 ### `isAndroidEligibleForAgeFeatures()`
 Check if the current Android user is subject to age verification requirements.
 
-**Returns**: `Promise<boolean>`
-- `true`: User should be shown age verification (in Texas, Utah, Louisiana, etc.)
-- `false`: User is not in an applicable region or API unavailable
+**Returns**: `Promise<DeclaredAgeEligibilityResult>`
+- `isEligible`: `boolean` - `true` if user should be shown age verification (in Texas, Utah, Louisiana, etc.)
+- `error`: `string | null` - Error message if API unavailable
 
 **Note**: Makes a lightweight API call to determine eligibility.
 
