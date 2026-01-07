@@ -80,7 +80,8 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       "status": statusString,
                       "parentControls": parentControls,
                       "lowerBound": lowerBound,
-                      "upperBound": upperBound
+                      "upperBound": upperBound,
+                      "error": nil
                   ]
                   resolve(resultMap)
                   
@@ -107,6 +108,34 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
       #endif
   }
   
+  @objc
+  public func isEligibleForAgeFeatures(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(DeclaredAgeRange)
+      // isEligibleForAgeFeatures requires iOS 26.2+
+      if #available(iOS 26.2, *) {
+          Task {
+            do {
+              let isEligible = try await AgeRangeService.shared.isEligibleForAgeFeatures
+              let resultMap: [String: Any?] = [
+                "isEligible": isEligible,
+                "error": nil
+              ]
+              resolve(resultMap)
+            } catch {
+              reject("ERR_IOS_AGE_ELIGIBLE", error.localizedDescription, error)
+            }
+          }
+      } else {
+          resolve(["isEligible": false, "error": "Requires iOS 26.2+"])
+      }
+      #else
+      resolve(["isEligible": false, "error": "SDK not available"])
+      #endif
+  }
+
   // Helper to get top view controller
   private func topViewController() -> UIViewController? {
     guard let windowScene = UIApplication.shared.connectedScenes

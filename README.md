@@ -208,6 +208,24 @@ Request iOS Age Signal.
 - `upperBound`: `number | null` - Upper age of user's range
 - `parentControls`: `string | null` - Parental control status
 
+### `isIOSEligibleForAgeFeatures()`
+Check if the current iOS user is subject to age verification requirements (e.g., in Texas).
+
+**Returns**: `Promise<boolean>`
+- `true`: User should be shown age verification
+- `false`: User is not in an applicable region or API unavailable
+
+**Requirements**: iOS 26.2+ for accurate results. Returns `true` on iOS 26.0-26.1, `false` on older versions.
+
+### `isAndroidEligibleForAgeFeatures()`
+Check if the current Android user is subject to age verification requirements.
+
+**Returns**: `Promise<boolean>`
+- `true`: User should be shown age verification (in Texas, Utah, Louisiana, etc.)
+- `false`: User is not in an applicable region or API unavailable
+
+**Note**: Makes a lightweight API call to determine eligibility.
+
 ## 🚨 Troubleshooting
 
 ### iOS Errors

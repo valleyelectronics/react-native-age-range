@@ -50,6 +50,13 @@ export interface DeclaredAgeRangeResult {
   parentControls: string | null;
   lowerBound: number | null;
   upperBound: number | null;
+  error: string | null;
+}
+
+// Eligibility Result
+export interface DeclaredAgeEligibilityResult {
+  isEligible: boolean;
+  error: string | null;
 }
 
 export interface AndroidAgeRangeConfig {
@@ -121,6 +128,7 @@ export function requestIOSDeclaredAgeRange(
       parentControls: null,
       lowerBound: null,
       upperBound: null,
+      error: 'This method is only available on iOS',
     });
   }
   return StoreAgeSignalsNativeModules.requestIOSDeclaredAgeRange(
@@ -128,4 +136,38 @@ export function requestIOSDeclaredAgeRange(
     secondThresholdAge,
     thirdThresholdAge
   );
+}
+
+/**
+ * Checks if the current user is eligible for age verification features on iOS.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas).
+ * @platform ios
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Requires iOS 26.0+. Returns isEligible: false with error message if not available.
+ */
+export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on iOS',
+    });
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
+}
+
+/**
+ * Checks if the current user is eligible for age verification features on Android.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas, Utah, Louisiana).
+ * @platform android
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Makes a lightweight API call to determine eligibility. Returns isEligible: false with error message if not available.
+ */
+export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
+  if (Platform.OS !== 'android') {
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on Android',
+    });
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
