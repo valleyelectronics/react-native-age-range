@@ -108,13 +108,19 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                   ]
                   resolve(resultMap)
                   
+              } catch let error as AgeRangeService.Error {
+                  var errorMsg = error.localizedDescription
+                  switch error {
+                  case .notAvailable:
+                      errorMsg += ". (Hint: Missing Entitlement OR Feature is unavailable on Simulator. Verify on real device.)"
+                  case .invalidRequest:
+                      errorMsg += ". (Hint: Invalid request, check requested ages.)"
+                  @unknown default:
+                      break
+                  }
+                  reject("ERR_IOS_AGE_REQUEST", errorMsg, error)
               } catch {
-                 // Enhance "Error 0" with a helpful message
-                 var errorMsg = error.localizedDescription
-                 if (error as NSError).code == 0 {
-                     errorMsg += ". (Hint: Missing Entitlement OR Feature is unavailable on Simulator. Verify on real device.)"
-                 }
-                 reject("ERR_IOS_AGE_REQUEST", errorMsg, error)
+                  reject("ERR_IOS_AGE_REQUEST", error.localizedDescription, error)
               }
           }
       } else {
