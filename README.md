@@ -12,12 +12,12 @@
   </tr>
   <tr>
     <td>
-      <video src="https://github.com/valleyelectronics/react-native-age-range/raw/main/assets/Android_screen_recording.webm" width="300" controls>
+      <video src="https://github.com/milkinteractive/react-native-age-range/raw/main/assets/Android_screen_recording.webm" width="300" controls>
         Your browser does not support the video tag.
       </video>
     </td>
     <td>
-      <video src="https://github.com/valleyelectronics/react-native-age-range/raw/main/assets/ios_screen_recording.mov" width="300" controls>
+      <video src="https://github.com/milkinteractive/react-native-age-range/raw/main/assets/ios_screen_recording.mov" width="300" controls>
         Your browser does not support the video tag.
       </video>
     </td>
@@ -38,8 +38,8 @@
 
 # React Native Age Range
 
-[![npm version](https://img.shields.io/npm/v/@valleyelectronics/react-native-age-range.svg?style=flat-square)](https://www.npmjs.com/package/@valleyelectronics/react-native-age-range)
-[![License](https://img.shields.io/npm/l/@valleyelectronics/react-native-age-range.svg?style=flat-square)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@milkinteractive/react-native-age-range.svg?style=flat-square)](https://www.npmjs.com/package/@milkinteractive/react-native-age-range)
+[![License](https://img.shields.io/npm/l/@milkinteractive/react-native-age-range.svg?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-ios%20%7C%20android-lightgrey.svg?style=flat-square)](https://facebook.github.io/react-native/)
 [![TypeScript](https://img.shields.io/badge/types-included-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
@@ -82,9 +82,9 @@ graph TD
 ## 📦 Installation
 
 ```sh
-npm install @valleyelectronics/react-native-age-range
+npm install @milkinteractive/react-native-age-range
 # or
-yarn add @valleyelectronics/react-native-age-range
+yarn add @milkinteractive/react-native-age-range
 ```
 
 ## ⚙️ Setup
@@ -124,7 +124,7 @@ import {
   requestIOSDeclaredAgeRange,
   isIOSEligibleForAgeFeatures,
   isAndroidEligibleForAgeFeatures,
-} from '@valleyelectronics/react-native-age-range';
+} from '@milkinteractive/react-native-age-range';
 import { Platform } from 'react-native';
 
 // 🤖 Android Example

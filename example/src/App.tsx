@@ -3,7 +3,7 @@ import {
   requestIOSDeclaredAgeRange,
   isIOSEligibleForAgeFeatures,
   isAndroidEligibleForAgeFeatures,
-} from '@valleyelectronics/react-native-age-range';
+} from '@milkinteractive/react-native-age-range';
 import {
   Text,
   View,
