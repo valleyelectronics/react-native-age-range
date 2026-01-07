@@ -173,14 +173,14 @@ export function getAndroidPlayAgeRangeStatus(
 /**
  * Requests age range declaration from iOS Declared Age Range API.
  * @platform ios
- * @param firstThresholdAge First age threshold (e.g., 13)
- * @param secondThresholdAge Second age threshold (e.g., 17)
- * @param thirdThresholdAge Third age threshold (e.g., 21)
+ * @param firstThresholdAge First age threshold (required, e.g., 13)
+ * @param secondThresholdAge Second age threshold (optional, e.g., 17)
+ * @param thirdThresholdAge Third age threshold (optional, e.g., 21)
  */
 export function requestIOSDeclaredAgeRange(
   firstThresholdAge: number,
-  secondThresholdAge: number,
-  thirdThresholdAge: number
+  secondThresholdAge?: number,
+  thirdThresholdAge?: number
 ): Promise<DeclaredAgeRangeResult> {
   if (Platform.OS !== 'ios') {
     return Promise.resolve({
@@ -194,8 +194,8 @@ export function requestIOSDeclaredAgeRange(
   }
   return StoreAgeSignalsNativeModules.requestIOSDeclaredAgeRange(
     firstThresholdAge,
-    secondThresholdAge,
-    thirdThresholdAge
+    secondThresholdAge ?? null,
+    thirdThresholdAge ?? null
   );
 }
 
