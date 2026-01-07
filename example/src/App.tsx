@@ -3,7 +3,7 @@ import {
   requestIOSDeclaredAgeRange,
   isIOSEligibleForAgeFeatures,
   isAndroidEligibleForAgeFeatures,
-} from 'react-native-store-age-signals-native-modules';
+} from '@valleyelectronics/react-native-age-range';
 import {
   Text,
   View,

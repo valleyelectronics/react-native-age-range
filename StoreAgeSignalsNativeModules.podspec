@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => min_ios_version_supported }
-  s.source       = { :git => "https://github.com/nagasaicharan/react-native-store-age-signals-native-modules.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/valleyelectronics/react-native-age-range.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
 

@@ -12,12 +12,12 @@
   </tr>
   <tr>
     <td>
-      <video src="https://github.com/nagasaicharan/react-native-store-age-signals-native-modules/raw/main/assets/Android_screen_recording.webm" width="300" controls>
+      <video src="https://github.com/valleyelectronics/react-native-age-range/raw/main/assets/Android_screen_recording.webm" width="300" controls>
         Your browser does not support the video tag.
       </video>
     </td>
     <td>
-      <video src="https://github.com/nagasaicharan/react-native-store-age-signals-native-modules/raw/main/assets/ios_screen_recording.mov" width="300" controls>
+      <video src="https://github.com/valleyelectronics/react-native-age-range/raw/main/assets/ios_screen_recording.mov" width="300" controls>
         Your browser does not support the video tag.
       </video>
     </td>
@@ -36,10 +36,10 @@
 |:------:|:----------:|
 | ![iOS Screenshot](assets/screenshot_ios.png) | ![Android Screenshot](assets/screenshot_android.png) |
 
-# React Native Store Age Signals
+# React Native Age Range
 
-[![npm version](https://img.shields.io/npm/v/react-native-store-age-signals-native-modules.svg?style=flat-square)](https://www.npmjs.com/package/react-native-store-age-signals-native-modules)
-[![License](https://img.shields.io/npm/l/react-native-store-age-signals-native-modules.svg?style=flat-square)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@valleyelectronics/react-native-age-range.svg?style=flat-square)](https://www.npmjs.com/package/@valleyelectronics/react-native-age-range)
+[![License](https://img.shields.io/npm/l/@valleyelectronics/react-native-age-range.svg?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-ios%20%7C%20android-lightgrey.svg?style=flat-square)](https://facebook.github.io/react-native/)
 [![TypeScript](https://img.shields.io/badge/types-included-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
 
@@ -82,9 +82,9 @@ graph TD
 ## 📦 Installation
 
 ```sh
-npm install react-native-store-age-signals-native-modules
+npm install @valleyelectronics/react-native-age-range
 # or
-yarn add react-native-store-age-signals-native-modules
+yarn add @valleyelectronics/react-native-age-range
 ```
 
 ## ⚙️ Setup
@@ -124,7 +124,7 @@ import {
   requestIOSDeclaredAgeRange,
   isIOSEligibleForAgeFeatures,
   isAndroidEligibleForAgeFeatures,
-} from 'react-native-store-age-signals-native-modules';
+} from '@valleyelectronics/react-native-age-range';
 import { Platform } from 'react-native';
 
 // 🤖 Android Example
