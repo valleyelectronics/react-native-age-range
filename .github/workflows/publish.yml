@@ -6,13 +6,11 @@ on:
       - 'v*'
 
 permissions:
-  id-token: write
   contents: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: npm
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +26,9 @@ jobs:
         run: yarn prepare
 
       - name: Publish to NPM
-        run: npm publish --access public --provenance
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
