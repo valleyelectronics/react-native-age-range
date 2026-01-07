@@ -40,6 +40,8 @@ class StoreAgeSignalsNativeModulesModule(reactContext: ReactApplicationContext) 
         val verificationStatus = when (mockStatusStr) {
           "OVER_AGE" -> AgeSignalsVerificationStatus.VERIFIED
           "UNDER_AGE" -> AgeSignalsVerificationStatus.SUPERVISED
+          "UNDER_AGE_APPROVAL_PENDING" -> AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_PENDING
+          "UNDER_AGE_APPROVAL_DENIED" -> AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_DENIED
           "UNKNOWN" -> AgeSignalsVerificationStatus.UNKNOWN
           else -> AgeSignalsVerificationStatus.VERIFIED
         }
@@ -104,15 +106,13 @@ class StoreAgeSignalsNativeModulesModule(reactContext: ReactApplicationContext) 
           
           val userStatusObj = result.userStatus()
           
-          var userStatus = "UNKNOWN"
-          if (userStatusObj == AgeSignalsVerificationStatus.VERIFIED) {
-            userStatus = "OVER_AGE"
-          } else if (userStatusObj == AgeSignalsVerificationStatus.SUPERVISED) {
-            userStatus = "UNDER_AGE"
-          } else if (userStatusObj == AgeSignalsVerificationStatus.UNKNOWN) {
-            userStatus = "UNKNOWN"
-          } else {
-             userStatus = "UNKNOWN"
+          val userStatus = when (userStatusObj) {
+            AgeSignalsVerificationStatus.VERIFIED -> "OVER_AGE"
+            AgeSignalsVerificationStatus.SUPERVISED -> "UNDER_AGE"
+            AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_PENDING -> "UNDER_AGE_APPROVAL_PENDING"
+            AgeSignalsVerificationStatus.SUPERVISED_APPROVAL_DENIED -> "UNDER_AGE_APPROVAL_DENIED"
+            AgeSignalsVerificationStatus.UNKNOWN -> "UNKNOWN"
+            else -> "UNKNOWN"
           }
           
           map.putString("userStatus", userStatus)
