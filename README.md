@@ -218,7 +218,31 @@ Request iOS Age Signal.
 - `status`: `'sharing' | 'declined' | null`
 - `lowerBound`: `number | null` - Lower age of user's range
 - `upperBound`: `number | null` - Upper age of user's range
-- `parentControls`: `string | null` - Parental control status
+- `ageRangeDeclaration`: How the age was verified:
+  - `selfDeclared` - User declared their own age
+  - `guardianDeclared` - Guardian set the age (children in iCloud family)
+  - `governmentIDChecked` / `guardianGovernmentIDChecked` - Verified via government ID
+  - `paymentChecked` / `guardianPaymentChecked` - Verified via payment method
+  - `checkedByOtherMethod` / `guardianCheckedByOtherMethod` - Other verification
+- `parentalControls`: `{ communicationLimits?: boolean, significantAppChangeApprovalRequired?: boolean }` - Active parental controls
+
+### `isIOSEligibleForAgeFeatures()`
+Check if the current iOS user is subject to age verification requirements (e.g., in Texas).
+
+**Returns**: `Promise<boolean>`
+- `true`: User should be shown age verification
+- `false`: User is not in an applicable region or API unavailable
+
+**Requirements**: iOS 26.2+ for accurate results. Returns `true` on iOS 26.0-26.1, `false` on older versions.
+
+### `isAndroidEligibleForAgeFeatures()`
+Check if the current Android user is subject to age verification requirements.
+
+**Returns**: `Promise<boolean>`
+- `true`: User should be shown age verification (in Texas, Utah, Louisiana, etc.)
+- `false`: User is not in an applicable region or API unavailable
+
+**Note**: Makes a lightweight API call to determine eligibility.
 
 ## 🚨 Troubleshooting
 

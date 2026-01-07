@@ -50,37 +50,62 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                   var statusString = "declined"
                   var lowerBound: NSNumber? = nil
                   var upperBound: NSNumber? = nil
-                  var parentControls: String? = nil
-                  
+                  var ageRangeDeclaration: String? = nil
+                  var parentalControls: [String: Bool] = [:]
+
                   switch response {
                   case .sharing(let declaration):
-                       if let declStatus = declaration.ageRangeDeclaration {
-                           statusString = String(describing: declStatus)
-                       } else {
-                           statusString = "sharing"
+                       statusString = "sharing"
+
+                       // Extract age range declaration type
+                       if let declType = declaration.ageRangeDeclaration {
+                           switch declType {
+                           case .selfDeclared:
+                               ageRangeDeclaration = "selfDeclared"
+                           case .guardianDeclared:
+                               ageRangeDeclaration = "guardianDeclared"
+                           case .checkedByOtherMethod:
+                               ageRangeDeclaration = "checkedByOtherMethod"
+                           case .guardianCheckedByOtherMethod:
+                               ageRangeDeclaration = "guardianCheckedByOtherMethod"
+                           case .governmentIDChecked:
+                               ageRangeDeclaration = "governmentIDChecked"
+                           case .guardianGovernmentIDChecked:
+                               ageRangeDeclaration = "guardianGovernmentIDChecked"
+                           case .paymentChecked:
+                               ageRangeDeclaration = "paymentChecked"
+                           case .guardianPaymentChecked:
+                               ageRangeDeclaration = "guardianPaymentChecked"
+                           @unknown default:
+                               ageRangeDeclaration = "unknown"
+                           }
                        }
-                       
+
                        if let lower = declaration.lowerBound {
                            lowerBound = NSNumber(value: lower)
                        }
                        if let upper = declaration.upperBound {
                            upperBound = NSNumber(value: upper)
                        }
-                       
-                       let controlsRaw = declaration.activeParentalControls.rawValue
-                       parentControls = "\(controlsRaw)"
-                       
+
+                       // Parse parental controls as structured object
+                       let controls = declaration.activeParentalControls
+                       parentalControls["communicationLimits"] = controls.contains(.communicationLimits)
+                       parentalControls["significantAppChangeApprovalRequired"] = controls.contains(.significantAppChangeApprovalRequired)
+
                   case .declinedSharing:
                        statusString = "declined"
                   @unknown default:
                        statusString = "unknown"
                   }
-                  
+
                   let resultMap: [String: Any?] = [
                       "status": statusString,
-                      "parentControls": parentControls,
                       "lowerBound": lowerBound,
-                      "upperBound": upperBound
+                      "upperBound": upperBound,
+                      "ageRangeDeclaration": ageRangeDeclaration,
+                      "parentalControls": parentalControls.isEmpty ? nil : parentalControls,
+                      "error": nil
                   ]
                   resolve(resultMap)
                   
@@ -107,6 +132,34 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
       #endif
   }
   
+  @objc
+  public func isEligibleForAgeFeatures(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(DeclaredAgeRange)
+      // isEligibleForAgeFeatures requires iOS 26.2+
+      if #available(iOS 26.2, *) {
+          Task {
+            do {
+              let isEligible = try await AgeRangeService.shared.isEligibleForAgeFeatures
+              let resultMap: [String: Any?] = [
+                "isEligible": isEligible,
+                "error": nil
+              ]
+              resolve(resultMap)
+            } catch {
+              reject("ERR_IOS_AGE_ELIGIBLE", error.localizedDescription, error)
+            }
+          }
+      } else {
+          resolve(["isEligible": false, "error": "Requires iOS 26.2+"])
+      }
+      #else
+      resolve(["isEligible": false, "error": "SDK not available"])
+      #endif
+  }
+
   // Helper to get top view controller
   private func topViewController() -> UIViewController? {
     guard let windowScene = UIApplication.shared.connectedScenes

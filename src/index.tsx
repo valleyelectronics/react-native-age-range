@@ -61,11 +61,62 @@ export interface PlayAgeRangeStatusResult {
 }
 
 // iOS Types
+
+/**
+ * How the age range was declared/verified.
+ * - selfDeclared: User declared their own age
+ * - guardianDeclared: Guardian set the age (for children in iCloud family)
+ * - checkedByOtherMethod: Verified by another method
+ * - guardianCheckedByOtherMethod: Guardian verified by another method
+ * - governmentIDChecked: Verified via government ID
+ * - guardianGovernmentIDChecked: Guardian verified via government ID
+ * - paymentChecked: Verified via payment method (credit card)
+ * - guardianPaymentChecked: Guardian verified via payment method
+ */
+export type AgeRangeDeclarationType =
+  | 'selfDeclared'
+  | 'guardianDeclared'
+  | 'checkedByOtherMethod'
+  | 'guardianCheckedByOtherMethod'
+  | 'governmentIDChecked'
+  | 'guardianGovernmentIDChecked'
+  | 'paymentChecked'
+  | 'guardianPaymentChecked'
+  | 'unknown';
+
+/**
+ * Parental control settings active for the user.
+ */
+export interface ParentalControlsInfo {
+  /** Whether communication limits are enabled (e.g., contact restrictions) */
+  communicationLimits?: boolean;
+  /** Whether significant app changes require parental approval */
+  significantAppChangeApprovalRequired?: boolean;
+}
+
 export interface DeclaredAgeRangeResult {
   status: 'sharing' | 'declined' | null;
-  parentControls: string | null;
   lowerBound: number | null;
   upperBound: number | null;
+  /**
+   * How the age range was declared/verified (iOS 26+).
+   * For children: always 'guardianDeclared'
+   * For teens in iCloud family: 'guardianDeclared'
+   * For teens not in family: 'selfDeclared'
+   * For adults: 'selfDeclared'
+   */
+  ageRangeDeclaration?: AgeRangeDeclarationType | null;
+  /**
+   * Parental control settings active for the user (if under age of majority).
+   */
+  parentalControls?: ParentalControlsInfo | null;
+  error: string | null;
+}
+
+// Eligibility Result
+export interface DeclaredAgeEligibilityResult {
+  isEligible: boolean;
+  error: string | null;
 }
 
 export interface AndroidAgeRangeConfig {
@@ -134,9 +185,11 @@ export function requestIOSDeclaredAgeRange(
   if (Platform.OS !== 'ios') {
     return Promise.resolve({
       status: null,
-      parentControls: null,
       lowerBound: null,
       upperBound: null,
+      ageRangeDeclaration: null,
+      parentalControls: null,
+      error: 'This method is only available on iOS',
     });
   }
   return StoreAgeSignalsNativeModules.requestIOSDeclaredAgeRange(
@@ -144,4 +197,38 @@ export function requestIOSDeclaredAgeRange(
     secondThresholdAge,
     thirdThresholdAge
   );
+}
+
+/**
+ * Checks if the current user is eligible for age verification features on iOS.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas).
+ * @platform ios
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Requires iOS 26.0+. Returns isEligible: false with error message if not available.
+ */
+export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on iOS',
+    });
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
+}
+
+/**
+ * Checks if the current user is eligible for age verification features on Android.
+ * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas, Utah, Louisiana).
+ * @platform android
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Makes a lightweight API call to determine eligibility. Returns isEligible: false with error message if not available.
+ */
+export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
+  if (Platform.OS !== 'android') {
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on Android',
+    });
+  }
+  return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
