@@ -80,7 +80,8 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       "status": statusString,
                       "parentControls": parentControls,
                       "lowerBound": lowerBound,
-                      "upperBound": upperBound
+                      "upperBound": upperBound,
+                      "error": nil
                   ]
                   resolve(resultMap)
                   
@@ -115,19 +116,23 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
       #if compiler(>=6.0) && canImport(DeclaredAgeRange)
       // isEligibleForAgeFeatures requires iOS 26.2+
       if #available(iOS 26.2, *) {
-          let isEligible = AgeRangeService.shared.isEligibleForAgeFeatures
-          resolve(isEligible)
-      } else if #available(iOS 26.0, *) {
-          // iOS 26.0-26.1: API exists but isEligibleForAgeFeatures not available
-          // Return true as a fallback (assume eligible, let requestAgeRange determine)
-          resolve(true)
+          Task {
+            do {
+              let isEligible = try await AgeRangeService.shared.isEligibleForAgeFeatures
+              let resultMap: [String: Any?] = [
+                "isEligible": isEligible,
+                "error": nil
+              ]
+              resolve(resultMap)
+            } catch {
+              reject("ERR_IOS_AGE_ELIGIBLE", error.localizedDescription, error)
+            }
+          }
       } else {
-          // iOS < 26.0: Not supported
-          resolve(false)
+          resolve(["isEligible": false, "error": "Requires iOS 26.2+"])
       }
       #else
-      // SDK not available
-      resolve(false)
+      resolve(["isEligible": false, "error": "SDK not available"])
       #endif
   }
 

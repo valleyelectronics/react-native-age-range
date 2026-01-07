@@ -163,22 +163,27 @@ class StoreAgeSignalsNativeModulesModule(reactContext: ReactApplicationContext) 
           // User is eligible if we get a valid response with a known status
           val userStatus = result.userStatus()
           val isEligible = userStatus != null && userStatus != AgeSignalsVerificationStatus.UNKNOWN
-          promise.resolve(isEligible)
+          val map = WritableNativeMap()
+          map.putBoolean("isEligible", isEligible)
+          map.putNull("error")
+          promise.resolve(map)
         }
         .addOnFailureListener { exception ->
-          // If API fails, user is likely not in an applicable region
-          // or there's a configuration issue
+          // If API fails, return isEligible: false with error
+          val map = WritableNativeMap()
+          map.putBoolean("isEligible", false)
           if (exception is ApiException) {
-            // Error codes -9 (APP_NOT_OWNED) and certain others indicate ineligibility
-            val isIneligible = exception.statusCode == -9
-            promise.resolve(!isIneligible && exception.statusCode >= 0)
+            map.putString("error", "API error: ${exception.statusCode}")
           } else {
-            promise.resolve(false)
+            map.putString("error", exception.message ?: "Unknown error")
           }
+          promise.resolve(map)
         }
     } catch (e: Exception) {
-      // If we can't even create the manager, user is not eligible
-      promise.resolve(false)
+      val map = WritableNativeMap()
+      map.putBoolean("isEligible", false)
+      map.putString("error", "Failed to initialize AgeSignalsManager: ${e.message}")
+      promise.resolve(map)
     }
   }
 

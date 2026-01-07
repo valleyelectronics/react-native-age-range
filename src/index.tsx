@@ -50,6 +50,13 @@ export interface DeclaredAgeRangeResult {
   parentControls: string | null;
   lowerBound: number | null;
   upperBound: number | null;
+  error: string | null;
+}
+
+// Eligibility Result
+export interface DeclaredAgeEligibilityResult {
+  isEligible: boolean;
+  error: string | null;
 }
 
 export interface AndroidAgeRangeConfig {
@@ -121,6 +128,7 @@ export function requestIOSDeclaredAgeRange(
       parentControls: null,
       lowerBound: null,
       upperBound: null,
+      error: 'This method is only available on iOS',
     });
   }
   return StoreAgeSignalsNativeModules.requestIOSDeclaredAgeRange(
@@ -134,12 +142,15 @@ export function requestIOSDeclaredAgeRange(
  * Checks if the current user is eligible for age verification features on iOS.
  * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas).
  * @platform ios
- * @returns Promise<boolean> - true if user should be shown age verification, false otherwise
- * @remarks Requires iOS 26.2+ for accurate results. Returns true on iOS 26.0-26.1, false on older versions.
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Requires iOS 26.0+. Returns isEligible: false with error message if not available.
  */
-export function isIOSEligibleForAgeFeatures(): Promise<boolean> {
+export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
   if (Platform.OS !== 'ios') {
-    return Promise.resolve(false);
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on iOS',
+    });
   }
   return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
@@ -148,12 +159,15 @@ export function isIOSEligibleForAgeFeatures(): Promise<boolean> {
  * Checks if the current user is eligible for age verification features on Android.
  * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas, Utah, Louisiana).
  * @platform android
- * @returns Promise<boolean> - true if user should be shown age verification, false otherwise
- * @remarks Makes a lightweight API call to determine eligibility. Returns false if API is unavailable.
+ * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
+ * @remarks Makes a lightweight API call to determine eligibility. Returns isEligible: false with error message if not available.
  */
-export function isAndroidEligibleForAgeFeatures(): Promise<boolean> {
+export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
   if (Platform.OS !== 'android') {
-    return Promise.resolve(false);
+    return Promise.resolve({
+      isEligible: false,
+      error: 'This method is only available on Android',
+    });
   }
   return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
