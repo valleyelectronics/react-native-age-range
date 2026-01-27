@@ -5,6 +5,11 @@ import StoreKit
 #if canImport(DeclaredAgeRange)
 import DeclaredAgeRange
 #endif
+
+#if canImport(PermissionKit)
+import PermissionKit
+#endif
+
 import UIKit
 
 // Check if DeclaredAgeRange type exists (iOS 18+) or handled via availability checks
@@ -157,6 +162,222 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
       }
       #else
       resolve(["isEligible": false, "error": "SDK not available"])
+      #endif
+  }
+
+  // MARK: - PermissionKit: Significant Change API
+
+  @objc
+  public func requestSignificantChangeApproval(
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(PermissionKit)
+      if #available(iOS 26.0, *) {
+          Task { @MainActor in
+              do {
+                  guard let viewController = self.topViewController() else {
+                      reject("VIEW_CONTROLLER_ERROR", "Could not find top view controller", nil)
+                      return
+                  }
+
+                  var topic = SignificantAppUpdateTopic()
+                  var question = PermissionQuestion(significantAppUpdateTopic: topic)
+
+                  try await AskCenter.current.ask(question: question, in: viewController)
+
+                  // If we get here without error, the request was shown successfully
+                  // The actual approval status is delivered asynchronously via updates
+                  let resultMap: [String: Any?] = [
+                      "status": "pending",
+                      "error": nil
+                  ]
+                  resolve(resultMap)
+
+              } catch {
+                  var errorMsg = error.localizedDescription
+                  if errorMsg.contains("region") {
+                      errorMsg += ". (Hint: User may be in a region that does not support this feature.)"
+                  }
+                  reject("ERR_IOS_SIGNIFICANT_CHANGE", errorMsg, error)
+              }
+          }
+      } else {
+          resolve(["status": nil, "error": "Requires iOS 26.0+"])
+      }
+      #else
+      resolve(["status": nil, "error": "PermissionKit SDK not available"])
+      #endif
+  }
+
+  // MARK: - PermissionKit: Communication Limits API
+
+  @objc
+  public func requestCommunicationPermission(
+    contacts: NSArray,
+    actions: NSArray,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(PermissionKit)
+      if #available(iOS 26.2, *) {
+          Task { @MainActor in
+              do {
+                  guard let viewController = self.topViewController() else {
+                      reject("VIEW_CONTROLLER_ERROR", "Could not find top view controller", nil)
+                      return
+                  }
+
+                  // Parse contacts from JS
+                  var personInfoList: [PersonInformation] = []
+                  for contact in contacts {
+                      guard let contactDict = contact as? [String: Any],
+                            let handleValue = contactDict["handle"] as? String,
+                            let handleKindStr = contactDict["handleKind"] as? String else {
+                          continue
+                      }
+
+                      let handleKind: CommunicationHandle.Kind
+                      switch handleKindStr {
+                      case "phoneNumber":
+                          handleKind = .phoneNumber
+                      case "email":
+                          handleKind = .email
+                      default:
+                          handleKind = .custom
+                      }
+
+                      let handle = CommunicationHandle(value: handleValue, kind: handleKind)
+
+                      // Optional display name
+                      var nameComponents: PersonNameComponents? = nil
+                      if let displayName = contactDict["displayName"] as? String {
+                          var components = PersonNameComponents()
+                          components.nickname = displayName
+                          nameComponents = components
+                      }
+
+                      let personInfo = PersonInformation(handle: handle, nameComponents: nameComponents)
+                      personInfoList.append(personInfo)
+                  }
+
+                  guard !personInfoList.isEmpty else {
+                      reject("ERR_IOS_COMM_PERMISSION", "No valid contacts provided", nil)
+                      return
+                  }
+
+                  // Parse actions
+                  var communicationActions: Set<CommunicationTopic.Action> = []
+                  for action in actions {
+                      if let actionStr = action as? String {
+                          switch actionStr {
+                          case "message":
+                              communicationActions.insert(.message)
+                          case "call":
+                              communicationActions.insert(.call)
+                          case "video":
+                              communicationActions.insert(.video)
+                          default:
+                              break
+                          }
+                      }
+                  }
+
+                  // Default to message if no actions specified
+                  if communicationActions.isEmpty {
+                      communicationActions.insert(.message)
+                  }
+
+                  var topic = CommunicationTopic(personInformation: personInfoList)
+                  topic.actions = communicationActions
+
+                  var question = PermissionQuestion(communicationTopic: topic)
+
+                  try await CommunicationLimits.current.ask(question, in: viewController)
+
+                  // If we get here without error, the request was shown successfully
+                  let resultMap: [String: Any?] = [
+                      "granted": true,
+                      "error": nil
+                  ]
+                  resolve(resultMap)
+
+              } catch {
+                  var errorMsg = error.localizedDescription
+                  if errorMsg.contains("region") {
+                      errorMsg += ". (Hint: User may be in a region that does not support this feature.)"
+                  } else if errorMsg.contains("Family Sharing") || errorMsg.contains("Communication Limits") {
+                      errorMsg += ". (Hint: Family Sharing and Communication Limits must be enabled.)"
+                  }
+                  reject("ERR_IOS_COMM_PERMISSION", errorMsg, error)
+              }
+          }
+      } else {
+          resolve(["granted": false, "error": "Requires iOS 26.2+"])
+      }
+      #else
+      resolve(["granted": false, "error": "PermissionKit SDK not available"])
+      #endif
+  }
+
+  @objc
+  public func getKnownCommunicationHandles(
+    handles: NSArray,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+      #if compiler(>=6.0) && canImport(PermissionKit)
+      if #available(iOS 26.2, *) {
+          Task {
+              do {
+                  // Parse handles from JS
+                  var communicationHandles: Set<CommunicationHandle> = []
+                  for handle in handles {
+                      guard let handleDict = handle as? [String: Any],
+                            let handleValue = handleDict["handle"] as? String,
+                            let handleKindStr = handleDict["handleKind"] as? String else {
+                          continue
+                      }
+
+                      let handleKind: CommunicationHandle.Kind
+                      switch handleKindStr {
+                      case "phoneNumber":
+                          handleKind = .phoneNumber
+                      case "email":
+                          handleKind = .email
+                      default:
+                          handleKind = .custom
+                      }
+
+                      let commHandle = CommunicationHandle(value: handleValue, kind: handleKind)
+                      communicationHandles.insert(commHandle)
+                  }
+
+                  guard !communicationHandles.isEmpty else {
+                      reject("ERR_IOS_KNOWN_HANDLES", "No valid handles provided", nil)
+                      return
+                  }
+
+                  let knownHandles = await CommunicationLimits.current.knownHandles(in: communicationHandles)
+
+                  // Convert back to string array for JS
+                  let knownHandleValues = knownHandles.map { $0.value }
+
+                  let resultMap: [String: Any?] = [
+                      "knownHandles": knownHandleValues,
+                      "error": nil
+                  ]
+                  resolve(resultMap)
+
+              } catch {
+                  reject("ERR_IOS_KNOWN_HANDLES", error.localizedDescription, error)
+              }
+          }
+      } else {
+          resolve(["knownHandles": [], "error": "Requires iOS 26.2+"])
+      }
+      #else
+      resolve(["knownHandles": [], "error": "PermissionKit SDK not available"])
       #endif
   }
 

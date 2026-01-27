@@ -119,6 +119,70 @@ export interface DeclaredAgeEligibilityResult {
   error: string | null;
 }
 
+// ========== PERMISSIONKIT TYPES (iOS 26+) ==========
+
+/**
+ * Status of significant change approval request.
+ * - approved: Parent/guardian approved the change
+ * - denied: Parent/guardian denied the change
+ * - pending: Request has been sent, awaiting response
+ */
+export type SignificantChangeStatus = 'approved' | 'denied' | 'pending' | null;
+
+/**
+ * Result of significant change approval request.
+ */
+export interface SignificantChangeResult {
+  status: SignificantChangeStatus;
+  error: string | null;
+}
+
+/**
+ * Handle type for communication contacts.
+ * - phoneNumber: Phone number identifier
+ * - email: Email address identifier
+ * - custom: Custom identifier (username, handle, etc.)
+ */
+export type CommunicationHandleKind = 'phoneNumber' | 'email' | 'custom';
+
+/**
+ * Contact information for communication permission request.
+ */
+export interface CommunicationContact {
+  /** Unique identifier (phone, email, username) */
+  handle: string;
+  /** Type of handle */
+  handleKind: CommunicationHandleKind;
+  /** Optional display name shown to parent/guardian */
+  displayName?: string;
+}
+
+/**
+ * Communication actions that can be requested.
+ * - message: Text/chat messaging
+ * - call: Voice calls
+ * - video: Video calls
+ */
+export type CommunicationAction = 'message' | 'call' | 'video';
+
+/**
+ * Result of communication permission request.
+ */
+export interface CommunicationPermissionResult {
+  /** Whether the permission request was successfully shown */
+  granted: boolean;
+  error: string | null;
+}
+
+/**
+ * Result of known handles check.
+ */
+export interface KnownHandlesResult {
+  /** Handles that are recognized by the system (known contacts) */
+  knownHandles: string[];
+  error: string | null;
+}
+
 export interface AndroidAgeRangeConfig {
   /**
    * Enable mock mode to simulate results without calling Google Play API.
@@ -231,4 +295,122 @@ export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilit
     });
   }
   return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
+}
+
+// ========== PERMISSIONKIT FUNCTIONS (iOS 26+) ==========
+
+/**
+ * Requests parental approval for significant app changes (iOS PermissionKit).
+ *
+ * Use this when `parentalControls.significantAppChangeApprovalRequired` is `true`
+ * from the `requestIOSDeclaredAgeRange()` response.
+ *
+ * This shows a system dialog to request parental consent for significant app updates.
+ * The parent/guardian will receive a notification via Messages.
+ *
+ * @platform ios
+ * @requires iOS 26.0+
+ * @returns Promise<SignificantChangeResult> - Contains status ('pending', 'approved', 'denied') and error
+ *
+ * @example
+ * ```typescript
+ * const ageResult = await requestIOSDeclaredAgeRange(13, 17, 21);
+ * if (ageResult.parentalControls?.significantAppChangeApprovalRequired) {
+ *   const result = await requestIOSSignificantChangeApproval();
+ *   if (result.status === 'pending') {
+ *     // Request sent, await parent response
+ *   }
+ * }
+ * ```
+ */
+export function requestIOSSignificantChangeApproval(): Promise<SignificantChangeResult> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve({
+      status: null,
+      error: 'This method is only available on iOS',
+    });
+  }
+  return StoreAgeSignalsNativeModules.requestSignificantChangeApproval();
+}
+
+/**
+ * Requests permission for a child to communicate with specified contacts (iOS PermissionKit).
+ *
+ * Use this when `parentalControls.communicationLimits` is `true`
+ * from the `requestIOSDeclaredAgeRange()` response.
+ *
+ * This shows a system dialog requesting the parent/guardian to approve
+ * communication with the specified contacts. The request is sent via Messages.
+ *
+ * @platform ios
+ * @requires iOS 26.2+
+ * @param contacts - Array of contacts to request permission for
+ * @param actions - Optional array of communication actions (defaults to ['message'])
+ * @returns Promise<CommunicationPermissionResult> - Contains granted boolean and error
+ *
+ * @example
+ * ```typescript
+ * const ageResult = await requestIOSDeclaredAgeRange(13, 17, 21);
+ * if (ageResult.parentalControls?.communicationLimits) {
+ *   const result = await requestIOSCommunicationPermission(
+ *     [{ handle: 'friend@example.com', handleKind: 'email', displayName: 'School Friend' }],
+ *     ['message', 'call']
+ *   );
+ * }
+ * ```
+ */
+export function requestIOSCommunicationPermission(
+  contacts: CommunicationContact[],
+  actions?: CommunicationAction[]
+): Promise<CommunicationPermissionResult> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve({
+      granted: false,
+      error: 'This method is only available on iOS',
+    });
+  }
+  return StoreAgeSignalsNativeModules.requestCommunicationPermission(
+    contacts,
+    actions || ['message']
+  );
+}
+
+/**
+ * Checks which handles are recognized by the system (known contacts) (iOS PermissionKit).
+ *
+ * Use this to determine which contacts are already approved before showing
+ * a communication permission request.
+ *
+ * @platform ios
+ * @requires iOS 26.2+
+ * @param handles - Array of handles to check
+ * @returns Promise<KnownHandlesResult> - Contains array of known handle values and error
+ *
+ * @example
+ * ```typescript
+ * const result = await getIOSKnownCommunicationHandles([
+ *   { handle: 'user@example.com', handleKind: 'email' },
+ *   { handle: 'gamer123', handleKind: 'custom' }
+ * ]);
+ *
+ * const unknownContacts = handles.filter(
+ *   h => !result.knownHandles.includes(h.handle)
+ * );
+ *
+ * if (unknownContacts.length > 0) {
+ *   // Request permission for unknown contacts
+ *   await requestIOSCommunicationPermission(unknownContacts);
+ * }
+ * ```
+ */
+export function getIOSKnownCommunicationHandles(
+  handles: CommunicationContact[]
+): Promise<KnownHandlesResult> {
+  if (Platform.OS !== 'ios') {
+    return Promise.resolve({
+      knownHandles: [],
+      error: 'This method is only available on iOS',
+    });
+  }
+  return StoreAgeSignalsNativeModules.getKnownCommunicationHandles(handles);
 }
