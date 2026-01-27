@@ -170,12 +170,16 @@ export function getAndroidPlayAgeRangeStatus(
   );
 }
 
+// Minimum iOS version required for DeclaredAgeRange API
+const IOS_MIN_VERSION_DECLARED_AGE_RANGE = 26;
+
 /**
  * Requests age range declaration from iOS Declared Age Range API.
  * @platform ios
  * @param firstThresholdAge First age threshold (required, e.g., 13)
  * @param secondThresholdAge Second age threshold (optional, e.g., 17)
  * @param thirdThresholdAge Third age threshold (optional, e.g., 21)
+ * @remarks Requires iOS 26.0+. Returns error on older iOS versions.
  */
 export function requestIOSDeclaredAgeRange(
   firstThresholdAge: number,
@@ -192,6 +196,20 @@ export function requestIOSDeclaredAgeRange(
       error: 'This method is only available on iOS',
     });
   }
+
+  // Early return for iOS versions below 26 to prevent native bridge errors
+  const iosVersion = parseInt(String(Platform.Version), 10);
+  if (iosVersion < IOS_MIN_VERSION_DECLARED_AGE_RANGE) {
+    return Promise.resolve({
+      status: null,
+      lowerBound: null,
+      upperBound: null,
+      ageRangeDeclaration: null,
+      parentalControls: null,
+      error: `Requires iOS ${IOS_MIN_VERSION_DECLARED_AGE_RANGE}.0+. Current version: iOS ${iosVersion}`,
+    });
+  }
+
   return StoreAgeSignalsNativeModules.requestIOSDeclaredAgeRange(
     firstThresholdAge,
     secondThresholdAge ?? null,
@@ -199,12 +217,15 @@ export function requestIOSDeclaredAgeRange(
   );
 }
 
+// Minimum iOS version required for isEligibleForAgeFeatures API
+const IOS_MIN_VERSION_ELIGIBLE_CHECK = 26;
+
 /**
  * Checks if the current user is eligible for age verification features on iOS.
  * This determines if age checks need to be applied (e.g., user is in an applicable region like Texas).
  * @platform ios
  * @returns Promise<DeclaredAgeEligibilityResult> - Object containing isEligible boolean and error string
- * @remarks Requires iOS 26.0+. Returns isEligible: false with error message if not available.
+ * @remarks Requires iOS 26.2+. Returns isEligible: false with error message if not available.
  */
 export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityResult> {
   if (Platform.OS !== 'ios') {
@@ -213,6 +234,16 @@ export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityRes
       error: 'This method is only available on iOS',
     });
   }
+
+  // Early return for iOS versions below 26 to prevent native bridge errors
+  const iosVersion = parseInt(String(Platform.Version), 10);
+  if (iosVersion < IOS_MIN_VERSION_ELIGIBLE_CHECK) {
+    return Promise.resolve({
+      isEligible: false,
+      error: `Requires iOS ${IOS_MIN_VERSION_ELIGIBLE_CHECK}.0+. Current version: iOS ${iosVersion}`,
+    });
+  }
+
   return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
 

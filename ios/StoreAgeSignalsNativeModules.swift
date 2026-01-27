@@ -21,8 +21,8 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
   @objc
   public func requestIOSDeclaredAgeRange(
     firstThresholdAge: NSNumber,
-    secondThresholdAge: NSNumber,
-    thirdThresholdAge: NSNumber,
+    secondThresholdAge: NSNumber?,
+    thirdThresholdAge: NSNumber?,
     resolve: @escaping RCTPromiseResolveBlock,
     reject: @escaping RCTPromiseRejectBlock
   ) {
@@ -36,16 +36,21 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                        reject("VIEW_CONTROLLER_ERROR", "Could not find top view controller", nil)
                        return
                   }
-                  
+
+                  // Convert NSNumber to Int, handling optional parameters
                   let t1 = Int(truncating: firstThresholdAge)
-                  let t2 = Int(truncating: secondThresholdAge)
-                  let t3 = Int(truncating: thirdThresholdAge)
-                  
-                  // Use AgeRangeService as per reference
-                  let response = try await AgeRangeService.shared.requestAgeRange(
-                      ageGates: t1, t2, t3,
-                      in: viewController
-                  )
+                  let t2 = secondThresholdAge.map { Int(truncating: $0) }
+                  let t3 = thirdThresholdAge.map { Int(truncating: $0) }
+
+                  // Call API with provided thresholds (variadic params require separate calls)
+                  let response: AgeRangeService.Response
+                  if let t2, let t3 {
+                      response = try await AgeRangeService.shared.requestAgeRange(ageGates: t1, t2, t3, in: viewController)
+                  } else if let t2 {
+                      response = try await AgeRangeService.shared.requestAgeRange(ageGates: t1, t2, in: viewController)
+                  } else {
+                      response = try await AgeRangeService.shared.requestAgeRange(ageGates: t1, in: viewController)
+                  }
                   
                   var statusString = "declined"
                   var lowerBound: NSNumber? = nil

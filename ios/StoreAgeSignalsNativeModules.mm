@@ -39,17 +39,17 @@ RCT_EXPORT_METHOD(getAndroidPlayAgeRangeStatus : (RCTPromiseResolveBlock)
   resolve(result);
 }
 
-RCT_EXPORT_METHOD(requestIOSDeclaredAgeRange : (
-    double)firstThresholdAge secondThresholdAge : (double)
-                      secondThresholdAge thirdThresholdAge : (double)
-                          thirdThresholdAge resolve : (RCTPromiseResolveBlock)
-                              resolve reject : (RCTPromiseRejectBlock)reject) {
-  // Assuming _swiftImpl has a method named
-  // requestIOSDeclaredAgeRangeWithFirstThresholdAge that matches the signature.
+RCT_EXPORT_METHOD(requestIOSDeclaredAgeRange : (nonnull NSNumber *)firstThresholdAge
+                      secondThresholdAge : (NSNumber *)secondThresholdAge
+                      thirdThresholdAge : (NSNumber *)thirdThresholdAge
+                      resolve : (RCTPromiseResolveBlock)resolve
+                      reject : (RCTPromiseRejectBlock)reject) {
+  // Convert NSNumber to NSNumber (handling nil for optional params)
+  // Swift side expects NSNumber which can represent nil via NSNull
   [_swiftImpl
-      requestIOSDeclaredAgeRangeWithFirstThresholdAge:@(firstThresholdAge)
-                                   secondThresholdAge:@(secondThresholdAge)
-                                    thirdThresholdAge:@(thirdThresholdAge)
+      requestIOSDeclaredAgeRangeWithFirstThresholdAge:firstThresholdAge
+                                   secondThresholdAge:secondThresholdAge
+                                    thirdThresholdAge:thirdThresholdAge
                                               resolve:resolve
                                                reject:reject];
 }
