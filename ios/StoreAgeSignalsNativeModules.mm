@@ -59,6 +59,33 @@ RCT_EXPORT_METHOD(isEligibleForAgeFeatures : (RCTPromiseResolveBlock)
   [_swiftImpl isEligibleForAgeFeaturesWithResolve:resolve reject:reject];
 }
 
+// MARK: - PermissionKit: Significant Change API
+
+RCT_EXPORT_METHOD(requestSignificantChangeApproval : (RCTPromiseResolveBlock)
+                      resolve reject : (RCTPromiseRejectBlock)reject) {
+  [_swiftImpl requestSignificantChangeApprovalWithResolve:resolve reject:reject];
+}
+
+// MARK: - PermissionKit: Communication Limits API
+
+RCT_EXPORT_METHOD(requestCommunicationPermission : (NSArray *)contacts
+                      actions : (NSArray *)actions
+                      resolve : (RCTPromiseResolveBlock)resolve
+                      reject : (RCTPromiseRejectBlock)reject) {
+  [_swiftImpl requestCommunicationPermissionWithContacts:contacts
+                                                 actions:actions
+                                                 resolve:resolve
+                                                  reject:reject];
+}
+
+RCT_EXPORT_METHOD(getKnownCommunicationHandles : (NSArray *)handles
+                      resolve : (RCTPromiseResolveBlock)resolve
+                      reject : (RCTPromiseRejectBlock)reject) {
+  [_swiftImpl getKnownCommunicationHandlesWithHandles:handles
+                                              resolve:resolve
+                                               reject:reject];
+}
+
 // Don't compile this code when we build for the old architecture.
 // Don't compile this code when we build for the old architecture.
 #ifdef RCT_NEW_ARCH_ENABLED

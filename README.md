@@ -191,6 +191,86 @@ async function checkEligibility() {
 }
 ```
 
+## 🛡️ PermissionKit Integration (iOS 26+)
+
+This package also supports Apple's **PermissionKit** framework for apps that need parental consent flows. Use these APIs when the `parentalControls` flags from `requestIOSDeclaredAgeRange()` indicate they're needed.
+
+### When to Use PermissionKit
+
+After calling `requestIOSDeclaredAgeRange()`, check the `parentalControls` object:
+
+```typescript
+const ageResult = await requestIOSDeclaredAgeRange(13, 17, 21);
+
+if (ageResult.parentalControls?.significantAppChangeApprovalRequired) {
+  // App updates require parental approval → use requestIOSSignificantChangeApproval()
+}
+
+if (ageResult.parentalControls?.communicationLimits) {
+  // Communication with unknown contacts requires approval → use requestIOSCommunicationPermission()
+}
+```
+
+### Significant Change Approval
+
+When your app has significant updates that require parental consent:
+
+```typescript
+import { requestIOSSignificantChangeApproval } from '@milkinteractive/react-native-age-range';
+
+const result = await requestIOSSignificantChangeApproval();
+
+if (result.status === 'pending') {
+  // Request sent to parent/guardian via Messages
+  // Show "waiting for approval" UI
+} else if (result.error) {
+  console.error('Significant change request failed:', result.error);
+}
+```
+
+### Communication Permissions
+
+For apps with chat/messaging features, request permission to communicate with unknown contacts:
+
+```typescript
+import {
+  getIOSKnownCommunicationHandles,
+  requestIOSCommunicationPermission,
+} from '@milkinteractive/react-native-age-range';
+
+// 1. Check which contacts are already known (approved)
+const knownResult = await getIOSKnownCommunicationHandles([
+  { handle: 'user@example.com', handleKind: 'email' },
+  { handle: 'gamer123', handleKind: 'custom' },
+]);
+
+// 2. Request permission for unknown contacts
+const unknownContacts = contacts.filter(
+  c => !knownResult.knownHandles.includes(c.handle)
+);
+
+if (unknownContacts.length > 0) {
+  const permResult = await requestIOSCommunicationPermission(
+    unknownContacts.map(c => ({
+      handle: c.handle,
+      handleKind: 'custom',
+      displayName: c.displayName, // Shown to parent in approval request
+    })),
+    ['message', 'call'] // Requested communication actions
+  );
+}
+```
+
+### PermissionKit Requirements
+
+- **iOS 26.0+** for Significant Change API
+- **iOS 26.2+** for Communication Limits API
+- **Family Sharing** must be enabled on the device
+- **Communication Limits** must be enabled by parent/guardian
+- No additional entitlements required (uses system permissions)
+
+> **Note**: PermissionKit features require a real device with Family Sharing configured. Simulator testing has limited functionality.
+
 ## 🧪 Developer Mock Mode
 
 Testing store APIs usually requires signed production builds. This library includes a powerful **Mock Mode** for development.
@@ -271,6 +351,49 @@ Check if the current Android user is subject to age verification requirements.
 
 **Note**: Makes a lightweight API call to determine eligibility.
 
+### `requestIOSSignificantChangeApproval()`
+Request parental approval for significant app changes (iOS PermissionKit).
+
+**Requirements**: iOS 26.0+
+
+**Returns**: `Promise<SignificantChangeResult>`
+- `status`: `'approved' | 'denied' | 'pending' | null` - Current approval status
+- `error`: `string | null` - Error message if request failed
+
+**Usage**: Call when `parentalControls.significantAppChangeApprovalRequired` is `true`.
+
+### `requestIOSCommunicationPermission(contacts, actions?)`
+Request permission for a child to communicate with specified contacts (iOS PermissionKit).
+
+**Requirements**: iOS 26.2+
+
+| Parameter | Type | Description |
+|---|---|---|
+| `contacts` | `CommunicationContact[]` | Contacts to request permission for |
+| `actions` | `CommunicationAction[]` | Optional: `['message']`, `['call']`, `['video']` (default: `['message']`) |
+
+**CommunicationContact**:
+- `handle`: `string` - Unique identifier (phone, email, username)
+- `handleKind`: `'phoneNumber' | 'email' | 'custom'`
+- `displayName`: `string` (optional) - Shown to parent in approval request
+
+**Returns**: `Promise<CommunicationPermissionResult>`
+- `granted`: `boolean` - Whether the permission dialog was shown successfully
+- `error`: `string | null` - Error message if request failed
+
+### `getIOSKnownCommunicationHandles(handles)`
+Check which handles are recognized by the system (known contacts).
+
+**Requirements**: iOS 26.2+
+
+| Parameter | Type | Description |
+|---|---|---|
+| `handles` | `CommunicationContact[]` | Handles to check |
+
+**Returns**: `Promise<KnownHandlesResult>`
+- `knownHandles`: `string[]` - Array of handle values that are known/approved
+- `error`: `string | null` - Error message if check failed
+
 ## 🚨 Troubleshooting
 
 ### iOS Errors
@@ -303,6 +426,8 @@ Check if the current Android user is subject to age verification requirements.
 **Apple iOS:**
 - [Declared Age Range Framework](https://developer.apple.com/documentation/declaredagerange) - Official Apple Developer Documentation
 - [WWDC25: Deliver age-appropriate experiences in your app](https://developer.apple.com/videos/play/wwdc2025/299/) - Session video explaining implementation
+- [PermissionKit Framework](https://developer.apple.com/documentation/PermissionKit) - Official PermissionKit Documentation
+- [WWDC25: Enhance child safety with PermissionKit](https://developer.apple.com/videos/play/wwdc2025/293/) - PermissionKit session video
 
 **Google Android:**
 - [Play Age Signals Overview](https://developer.android.com/google/play/age-signals/overview) - Introduction and concepts
