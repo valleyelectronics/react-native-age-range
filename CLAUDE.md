@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-React Native native module providing access to store-level age signals for compliance with state-level age verification laws (Texas SB2420, Utah, Louisiana). Supports both iOS (Apple Declared Age Range API) and Android (Google Play Age Signals API).
+React Native native module providing access to store-level age signals for compliance with state-level age verification laws (Texas SB2420, Utah, Louisiana). Supports both iOS (Apple Declared Age Range API + PermissionKit) and Android (Google Play Age Signals API).
 
 ## Development Commands
 
@@ -39,15 +39,18 @@ yarn release
 **Legacy Native Module Architecture** - Uses traditional React Native bridge (not Turbo Modules).
 
 ### TypeScript Layer (`src/index.tsx`)
-- Exports two main functions: `getAndroidPlayAgeRangeStatus()` and `requestIOSDeclaredAgeRange()`
-- Platform-guards each function, returning null results for wrong platform
-- TypeScript interfaces: `PlayAgeRangeStatusResult`, `DeclaredAgeRangeResult`, `AndroidAgeRangeConfig`
+- **Age Range APIs**: `getAndroidPlayAgeRangeStatus()`, `requestIOSDeclaredAgeRange()`
+- **Eligibility APIs**: `isIOSEligibleForAgeFeatures()`, `isAndroidEligibleForAgeFeatures()`
+- **PermissionKit APIs** (iOS 26+): `requestIOSSignificantChangeApproval()`, `requestIOSCommunicationPermission()`, `getIOSKnownCommunicationHandles()`
+- Platform-guards each function, returning null/error for wrong platform or unsupported iOS version
+- Early iOS version check prevents native bridge crashes on iOS < 26
 
 ### iOS Native (`ios/StoreAgeSignalsNativeModules.swift`)
-- Uses `DeclaredAgeRange` framework (iOS 26.0+)
+- Uses `DeclaredAgeRange` framework (iOS 26.0+) for age verification
+- Uses `PermissionKit` framework (iOS 26.0+/26.2+) for parental consent flows
 - `AgeRangeService.shared.requestAgeRange()` requires a view controller context
-- Compile-time guards with `#if compiler(>=6.0) && canImport(DeclaredAgeRange)`
-- Returns status: 'sharing' | 'declined' | null with optional age bounds
+- Compile-time guards with `#if compiler(>=6.0) && canImport(DeclaredAgeRange)` and `canImport(PermissionKit)`
+- Returns `parentalControls` flags indicating when PermissionKit APIs should be used
 
 ### Android Native (`android/.../StoreAgeSignalsNativeModulesModule.kt`)
 - Uses Google Play `AgeSignalsApi` via `AgeSignalsManagerFactory.create()`
@@ -65,5 +68,6 @@ Pre-commit hooks verify commit message format.
 
 ## Platform Constraints
 
-- **iOS**: Requires iOS 26.0+, paid Apple Developer account, "Declared Age Range" capability in Xcode entitlements. Age thresholds must create 2+ year ranges.
+- **iOS DeclaredAgeRange**: Requires iOS 26.0+, paid Apple Developer account, "Declared Age Range" capability in Xcode entitlements. Age thresholds must create 2+ year ranges.
+- **iOS PermissionKit**: Requires iOS 26.0+ (Significant Change) or iOS 26.2+ (Communication Limits). Requires Family Sharing and Communication Limits enabled on device. No additional entitlements needed.
 - **Android**: Requires Google Play Services. No manual setup needed.
