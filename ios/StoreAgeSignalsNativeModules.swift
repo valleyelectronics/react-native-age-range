@@ -178,7 +178,7 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
     reject: @escaping RCTPromiseRejectBlock
   ) {
       #if compiler(>=6.0) && canImport(PermissionKit)
-      if #available(iOS 26.0, *) {
+      if #available(iOS 26.2, *) {
           Task { @MainActor in
               do {
                   guard let viewController = self.topViewController() else {
@@ -186,10 +186,10 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       return
                   }
 
-                  var topic = SignificantAppUpdateTopic()
+                  var topic = SignificantAppUpdateTopic(description: "App update requires approval")
                   var question = PermissionQuestion(significantAppUpdateTopic: topic)
 
-                  try await AskCenter.current.ask(question: question, in: viewController)
+                  try await AskCenter.shared.ask(question, in: viewController)
 
                   // If we get here without error, the request was shown successfully
                   // The actual approval status is delivered asynchronously via updates
@@ -233,8 +233,8 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       return
                   }
 
-                  // Parse contacts from JS
-                  var personInfoList: [PersonInformation] = []
+                  // Parse contacts from JS into CommunicationHandles
+                  var handlesList: [CommunicationHandle] = []
                   for contact in contacts {
                       guard let contactDict = contact as? [String: Any],
                             let handleValue = contactDict["handle"] as? String,
@@ -246,57 +246,22 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       switch handleKindStr {
                       case "phoneNumber":
                           handleKind = .phoneNumber
-                      case "email":
-                          handleKind = .email
+                      case "emailAddress":
+                          handleKind = .emailAddress
                       default:
                           handleKind = .custom
                       }
 
                       let handle = CommunicationHandle(value: handleValue, kind: handleKind)
-
-                      // Optional display name
-                      var nameComponents: PersonNameComponents? = nil
-                      if let displayName = contactDict["displayName"] as? String {
-                          var components = PersonNameComponents()
-                          components.nickname = displayName
-                          nameComponents = components
-                      }
-
-                      let personInfo = PersonInformation(handle: handle, nameComponents: nameComponents)
-                      personInfoList.append(personInfo)
+                      handlesList.append(handle)
                   }
 
-                  guard !personInfoList.isEmpty else {
+                  guard !handlesList.isEmpty else {
                       reject("ERR_IOS_COMM_PERMISSION", "No valid contacts provided", nil)
                       return
                   }
 
-                  // Parse actions
-                  var communicationActions: Set<CommunicationTopic.Action> = []
-                  for action in actions {
-                      if let actionStr = action as? String {
-                          switch actionStr {
-                          case "message":
-                              communicationActions.insert(.message)
-                          case "call":
-                              communicationActions.insert(.call)
-                          case "video":
-                              communicationActions.insert(.video)
-                          default:
-                              break
-                          }
-                      }
-                  }
-
-                  // Default to message if no actions specified
-                  if communicationActions.isEmpty {
-                      communicationActions.insert(.message)
-                  }
-
-                  var topic = CommunicationTopic(personInformation: personInfoList)
-                  topic.actions = communicationActions
-
-                  var question = PermissionQuestion(communicationTopic: topic)
+                  let question = PermissionQuestion(handles: handlesList)
 
                   try await CommunicationLimits.current.ask(question, in: viewController)
 
@@ -349,7 +314,7 @@ public class StoreAgeSignalsNativeModulesSwift: NSObject {
                       case "phoneNumber":
                           handleKind = .phoneNumber
                       case "email":
-                          handleKind = .email
+                          handleKind = .custom
                       default:
                           handleKind = .custom
                       }

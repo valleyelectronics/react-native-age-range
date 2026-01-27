@@ -235,7 +235,7 @@ export function getAndroidPlayAgeRangeStatus(
 }
 
 // Minimum iOS version required for DeclaredAgeRange API
-const IOS_MIN_VERSION_DECLARED_AGE_RANGE = 26;
+const IOS_MIN_VERSION_DECLARED_AGE_RANGE = 26.0;
 
 /**
  * Requests age range declaration from iOS Declared Age Range API.
@@ -262,7 +262,7 @@ export function requestIOSDeclaredAgeRange(
   }
 
   // Early return for iOS versions below 26 to prevent native bridge errors
-  const iosVersion = parseInt(String(Platform.Version), 10);
+  const iosVersion = parseFloat(String(Platform.Version));
   if (iosVersion < IOS_MIN_VERSION_DECLARED_AGE_RANGE) {
     return Promise.resolve({
       status: null,
@@ -282,7 +282,7 @@ export function requestIOSDeclaredAgeRange(
 }
 
 // Minimum iOS version required for isEligibleForAgeFeatures API
-const IOS_MIN_VERSION_ELIGIBLE_CHECK = 26;
+const IOS_MIN_VERSION_ELIGIBLE_CHECK = 26.2;
 
 /**
  * Checks if the current user is eligible for age verification features on iOS.
@@ -300,7 +300,7 @@ export function isIOSEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilityRes
   }
 
   // Early return for iOS versions below 26 to prevent native bridge errors
-  const iosVersion = parseInt(String(Platform.Version), 10);
+  const iosVersion = parseFloat(String(Platform.Version));
   if (iosVersion < IOS_MIN_VERSION_ELIGIBLE_CHECK) {
     return Promise.resolve({
       isEligible: false,
@@ -328,7 +328,10 @@ export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilit
   return StoreAgeSignalsNativeModules.isEligibleForAgeFeatures();
 }
 
-// ========== PERMISSIONKIT FUNCTIONS (iOS 26+) ==========
+// ========== PERMISSIONKIT FUNCTIONS (iOS 26.2+) ==========
+
+// Minimum iOS version required for PermissionKit APIs
+const IOS_MIN_VERSION_PERMISSIONKIT = 26.2;
 
 /**
  * Requests parental approval for significant app changes (iOS PermissionKit).
@@ -340,7 +343,7 @@ export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilit
  * The parent/guardian will receive a notification via Messages.
  *
  * @platform ios
- * @requires iOS 26.0+
+ * @requires iOS 26.2+
  * @returns Promise<SignificantChangeResult> - Contains status ('pending', 'approved', 'denied') and error
  *
  * @example
@@ -354,6 +357,7 @@ export function isAndroidEligibleForAgeFeatures(): Promise<DeclaredAgeEligibilit
  * }
  * ```
  */
+
 export function requestIOSSignificantChangeApproval(): Promise<SignificantChangeResult> {
   if (Platform.OS !== 'ios') {
     return Promise.resolve({
@@ -361,6 +365,15 @@ export function requestIOSSignificantChangeApproval(): Promise<SignificantChange
       error: 'This method is only available on iOS',
     });
   }
+
+  const iosVersion = parseFloat(String(Platform.Version));
+  if (iosVersion < IOS_MIN_VERSION_PERMISSIONKIT) {
+    return Promise.resolve({
+      status: null,
+      error: `Requires iOS ${IOS_MIN_VERSION_PERMISSIONKIT}+. Current version: iOS ${iosVersion}`,
+    });
+  }
+
   return StoreAgeSignalsNativeModules.requestSignificantChangeApproval();
 }
 
@@ -400,6 +413,15 @@ export function requestIOSCommunicationPermission(
       error: 'This method is only available on iOS',
     });
   }
+
+  const iosVersion = parseFloat(String(Platform.Version));
+  if (iosVersion < IOS_MIN_VERSION_PERMISSIONKIT) {
+    return Promise.resolve({
+      granted: false,
+      error: `Requires iOS ${IOS_MIN_VERSION_PERMISSIONKIT}+. Current version: iOS ${iosVersion}`,
+    });
+  }
+
   return StoreAgeSignalsNativeModules.requestCommunicationPermission(
     contacts,
     actions || ['message']
@@ -443,5 +465,14 @@ export function getIOSKnownCommunicationHandles(
       error: 'This method is only available on iOS',
     });
   }
+
+  const iosVersion = parseFloat(String(Platform.Version));
+  if (iosVersion < IOS_MIN_VERSION_PERMISSIONKIT) {
+    return Promise.resolve({
+      knownHandles: [],
+      error: `Requires iOS ${IOS_MIN_VERSION_PERMISSIONKIT}+. Current version: iOS ${iosVersion}`,
+    });
+  }
+
   return StoreAgeSignalsNativeModules.getKnownCommunicationHandles(handles);
 }
